@@ -110,6 +110,7 @@ static struct proc*
 allocproc(void)
 {
   struct proc *p;
+  
 
   for(p = proc; p < &proc[NPROC]; p++) {
     acquire(&p->lock);
@@ -440,6 +441,15 @@ scheduler(void)
     for(p = proc; p < &proc[NPROC]; p++) {
       acquire(&p->lock);
       if(p->state == RUNNABLE) {
+        p->wait_time++;
+
+        if(p->wait_time >= 50){
+
+          if(p->priority > 1){
+             p->priority--;
+          }
+          p->wait_time = 0;
+        }
         // Switch to chosen process.  It is the process's job
         // to release its lock and then reacquire it
         // before jumping back to us.
