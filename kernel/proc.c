@@ -687,3 +687,31 @@ procdump(void)
     printf("\n");
   }
 }
+int
+set_priority(int priority)
+{
+  if(priority < 1 || priority > 10)
+    return -1;
+
+  struct proc *p = myproc();
+
+  acquire(&p->lock);
+  p->priority = priority;
+  release(&p->lock);
+
+  return 0;
+}
+
+int
+get_priority(void)
+{
+  struct proc *p = myproc();
+
+  acquire(&p->lock);
+
+  int priority = p->priority;
+
+  release(&p->lock);
+
+  return priority;
+}
