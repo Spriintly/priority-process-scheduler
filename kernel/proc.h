@@ -108,3 +108,6 @@ struct proc {
   int priority;     // process priority (1 = lowest, 10 = highest)
   int wait_time;    // ticks spent waiting in RUNNABLE state
 };
+
+int set_priority(int);
+int get_priority(void);
