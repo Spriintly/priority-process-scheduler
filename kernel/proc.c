@@ -425,20 +425,15 @@ void
 scheduler(void)
 {
   struct proc *p;
+  struct proc *highest;
   struct cpu *c = mycpu();
-
   c->proc = 0;
-  for(;;){
-    // The most recent process to run may have had interrupts
-    // turned off; enable them to avoid a deadlock if all
-    // processes are waiting. Then turn them back off
-    // to avoid a possible race between an interrupt
-    // and wfi.
-    intr_on();
-    intr_off();
 
-    int found = 0;
-    for(p = proc; p < &proc[NPROC]; p++) {
+  for(;;){
+    intr_on();
+    highest = 0;
+
+    for(p = proc; p < &proc[NPROC]; p++){
       acquire(&p->lock);
       if(p->state == RUNNABLE) {
         p->wait_time++;
@@ -461,15 +456,30 @@ scheduler(void)
         // It should have changed its p->state before coming back.
         c->proc = 0;
         found = 1;
+      if(p->state == RUNNABLE){
+        if(highest == 0 || p->priority > highest->priority){
+          if(highest != 0)
+            release(&highest->lock);
+          highest = p;
+        } else {
+          release(&p->lock);
+        }
+      } else {
+        release(&p->lock);
       }
-      release(&p->lock);
     }
-    if(found == 0) {
-      // nothing to run; stop running on this core until an interrupt.
-      asm volatile("wfi");
+
+    if(highest != 0){
+      highest->state = RUNNING;
+      highest->wait_time = 0;
+      c->proc = highest;
+      swtch(&c->context, &highest->context);
+      c->proc = 0;
+      release(&highest->lock);
     }
   }
 }
+
 
 // Switch to scheduler.  Must hold only p->lock
 // and have changed proc->state. Saves and restores
