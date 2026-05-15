@@ -197,6 +197,7 @@ UPROGS=\
 	$U/_dorphan\
 	$U/_comchannel\
         $U/_myfirstprogram\
+	$U/_prioritytest\
 
 
 
@@ -304,7 +305,7 @@ QEMUGDB = $(shell if $(QEMU) -help | grep -q '^-gdb'; \
 	then echo "-gdb tcp::$(GDBPORT)"; \
 	else echo "-s -p $(GDBPORT)"; fi)
 ifndef CPUS
-CPUS := 3
+CPUS := 1
 endif
 ifeq ($(LAB),fs)
 CPUS := 1
