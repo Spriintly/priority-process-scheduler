@@ -427,43 +427,40 @@ scheduler(void)
   struct proc *p;
   struct proc *highest;
   struct cpu *c = mycpu();
+
   c->proc = 0;
 
   for(;;){
     intr_on();
+
     highest = 0;
 
     for(p = proc; p < &proc[NPROC]; p++){
       acquire(&p->lock);
-      if(p->state == RUNNABLE) {
+
+      if(p->state == RUNNABLE){
+
+        // aging logic
         p->wait_time++;
 
-        if(p->wait_time >= 50){
+        if(p->wait_time >= 10){
+          if(p->priority < 10)
+            p->priority++;
 
-          if(p->priority > 1){
-             p->priority--;
-          }
           p->wait_time = 0;
         }
-        // Switch to chosen process.  It is the process's job
-        // to release its lock and then reacquire it
-        // before jumping back to us.
-        p->state = RUNNING;
-        c->proc = p;
-        swtch(&c->context, &p->context);
 
-        // Process is done running for now.
-        // It should have changed its p->state before coming back.
-        c->proc = 0;
-        found = 1;
-      if(p->state == RUNNABLE){
         if(highest == 0 || p->priority > highest->priority){
+
           if(highest != 0)
             release(&highest->lock);
+
           highest = p;
+
         } else {
           release(&p->lock);
         }
+
       } else {
         release(&p->lock);
       }
@@ -472,8 +469,10 @@ scheduler(void)
     if(highest != 0){
       highest->state = RUNNING;
       highest->wait_time = 0;
+
       c->proc = highest;
       swtch(&c->context, &highest->context);
+
       c->proc = 0;
       release(&highest->lock);
     }
