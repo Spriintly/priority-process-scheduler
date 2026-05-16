@@ -435,12 +435,13 @@ scheduler(void)
 
     highest = 0;
 
+    // Find highest priority RUNNABLE process
     for(p = proc; p < &proc[NPROC]; p++){
       acquire(&p->lock);
 
       if(p->state == RUNNABLE){
 
-        // aging logic
+        // Aging mechanism
         p->wait_time++;
 
         if(p->wait_time >= 10){
@@ -450,6 +451,7 @@ scheduler(void)
           p->wait_time = 0;
         }
 
+        // Pick highest priority process
         if(highest == 0 || p->priority > highest->priority){
 
           if(highest != 0)
@@ -466,14 +468,20 @@ scheduler(void)
       }
     }
 
+    // Run selected process
     if(highest != 0){
+
       highest->state = RUNNING;
+
+      // Reset waiting time after getting CPU
       highest->wait_time = 0;
 
       c->proc = highest;
+
       swtch(&c->context, &highest->context);
 
       c->proc = 0;
+
       release(&highest->lock);
     }
   }
