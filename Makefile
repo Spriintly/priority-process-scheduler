@@ -196,8 +196,8 @@ UPROGS=\
 	$U/_forphan\
 	$U/_dorphan\
 	$U/_comchannel\
-        $U/_myfirstprogram\
-
+    $U/_myfirstprogram\
+	$U/_prioritytest\
 
 
 
